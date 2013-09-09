@@ -204,14 +204,24 @@ If you are already occupying more than numnodes, then it will pause before
 executing the command. It will also create many files under workingdir, so
 be sure to specify it. The workingdir is the current directory by default.
 
+You can also specify temporary settings for this one command with a referenced hash.
+
+  $sge->pleaseExecute("someCommand with parameters",{jobname=>"a_nu_start",numcpus=>2});
+
 =back
 
 =cut
 
 sub pleaseExecute{
-  my($self,$cmd)=@_;
+  my($self,$cmd,$tmpSettings)=@_;
   local $0=basename $0;
   my $settings=$self->settings;
+
+  # read in any temporary settings for this command
+  $tmpSettings={} if(!defined($tmpSettings));
+  $$settings{$_}=$$tmpSettings{$_} for(keys(%$tmpSettings));
+
+  # default settings for undefined settings
   my $jobid=-1; # -1 is an error state
   $$settings{jobname}||="run$0";
   $$settings{logfile}||="$0.log";
