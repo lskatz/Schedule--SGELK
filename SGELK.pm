@@ -10,7 +10,7 @@ Schedule::SGELK
 
 A module for submitting jobs to an SGE queue.
   use Schedule::SGELK
-  my $sge=Schedule::SGELK->new(-verbose=>1,-numnodes=>5,-numcpus=>8,-workingdir=>"SGE/",-waitForEachJobToStart=>1);
+  my $sge=Schedule::SGELK->new(verbose=>1,numnodes=>5,numcpus=>8,workingdir=>"SGE/",waitForEachJobToStart=>1);
   $sge->set("jobname","thisisaname");
   # run a series of jobs and wait for them all to finish
   my $job=$sge->pleaseExecute("sleep 60");
@@ -22,7 +22,7 @@ A module for submitting jobs to an SGE queue.
   $sge->pleaseExecute_andWait("sleep 60");
 
 A quick test for this module is the following one-liner
-  perl -MSchedule::SGELK -e '$sge=Schedule::SGELK->new(-numnodes=>5); for(1..3){$sge->pleaseExecute("sleep 3");}$sge->wrapItUp();'
+  perl -MSchedule::SGELK -e '$sge=Schedule::SGELK->new(numnodes=>5); for(1..3){$sge->pleaseExecute("sleep 3");}$sge->wrapItUp();'
 
 =head1 DESCRIPTION
 
@@ -47,13 +47,16 @@ use File::Slurp qw/read_file write_file/;
 use File::Temp qw/tempdir/;
 use String::Escape qw/escape/;
 
+# some global variables
+my @jobsToClean=();
+my @jobsToMonitor=();
+my $numSlots=0; # number of slots that are being used now
+
 sub logmsg {local $0=basename $0;my $FH = *STDOUT; print $FH "$0: ".(caller(1))[3].": @_\n";}
 local $SIG{'__DIE__'} = sub { my $e = $_[0]; $e =~ s/(at [^\s]+? line \d+\.$)/\nStopped $1/; die("$0: ".(caller(1))[3].": ".$e); };
 local $SIG{INT} = sub{ cleanAllJobs(); };
 
 # to be called when the script exits
-my @jobsToClean=();
-my @jobsToMonitor=();
 sub cleanAllJobs{
   return if(!@jobsToClean);
   logmsg "Cleaning all jobs";
@@ -75,13 +78,17 @@ END{
 
 create a new instance of a scheduler.
 Arguments and their defaults:
-  numnodes=>1 maximum nodes to use
-  numcpus=>1 maximum cpus that will be used per node in a script
-  maxslots=>100 maximum slots that you can use. Useful if you want to be limited by total slots instead of nodes or CPUs. E.g. {numnodes=>100,numcpus=>1,maxslots=>20}
+  numnodes=>50 maximum nodes to use
+  numcpus=>128 maximum cpus that will be used per node in a script
+  maxslots=>9999 maximum slots that you can use. Useful if you want to be limited by total slots instead of nodes or CPUs. E.g. {numnodes=>100,numcpus=>1,maxslots=>20}
   verbose=>0
   workingdir=>$ENV{PWD} a directory that all nodes can access to read/write jobs and log files
   waitForEachJobToStart=>0 Allow each job to start as it's run (0), or to wait until the qstat sees the job before continuing (1)
   jobname=>... This is the name given to the job when you view it with qstat. By default, it will be named after the script that calls this module.
+
+  Examples:
+  {numnodes=>100,numcpus=>1,maxslots=>50} # for many small jobs
+  {numnodes=>5,numcpus=>8,maxslots=>40} # for a few larger jobs (note: maxslots should be >= numnodes * maxslots
 
 =back
 
@@ -104,7 +111,7 @@ sub new{
   }
 
   # set defaults if they are not set
-  my %default=(numnodes=>1,numcpus=>1,verbose=>0,waitForEachJobToStart=>0);
+  my %default=(numnodes=>50,numcpus=>128,verbose=>0,waitForEachJobToStart=>0,maxslots=>9999);
   while(my($key,$value)=each(%default)){
     $self->settings($key,$value) if(!defined($self->settings($key)));
   }
@@ -265,7 +272,7 @@ END
   #system("cat $script");sleep 60;die;
 
   # now run the script and get the jobid
-  my %return=(submitted=>$submitted,running=>$running,finished=>$finished,died=>$died,tempdir=>$tempdir,output=>$output,cmd=>$cmd,script=>$script,jobname=>$$settings{jobname});
+  my %return=(submitted=>$submitted,running=>$running,finished=>$finished,died=>$died,tempdir=>$tempdir,output=>$output,cmd=>$cmd,script=>$script,jobname=>$$settings{jobname},numcpus=>$$settings{numcpus});
   my $qsub=$self->get("qsub");
   if(!$qsub){
     logmsg "Warning: qsub was not found! Running a system call instead.";
@@ -298,6 +305,7 @@ END
   $return{jobid}=$jobid;
   push(@jobsToClean,\%return) if(!$self->settings("keep"));
   push(@jobsToMonitor,\%return);
+  $numSlots+=$$settings{numcpus}; # claim these cpus
   return %return if wantarray;
   return \%return;
 }
@@ -367,6 +375,7 @@ sub checkJob{
   return 0 if(!-e $$job{submitted});
   # if the job finished, then great! {finished}
   return 1 if(-e $$job{finished});
+  return 1 if(!keys(%$job)); # sometimes a job is blank... why?
   # if the job died
   if(-e $$job{died}){
     my @content=read_file($$job{output});
@@ -472,12 +481,16 @@ sub waitOnJobs{
   my($self,$job,$mustfinish)=@_;
   my %settings=$self->settings;
   $settings{mustfinish}=$mustfinish if(defined($mustfinish));
-  logmsg "We have reached node capacity ($settings{numnodes})! Waiting for a job to finish." if(@$job >= $settings{numnodes} && $settings{verbose});
+  if($settings{verbose}){
+    logmsg "We have reached node capacity ($settings{numnodes})! Waiting for a job to finish." if(@$job >= $settings{numnodes});
+    logmsg "We have reached slot capacity ($settings{maxslots})! Waiting for a job to finish." if($numSlots >= $settings{maxslots});
+  }
   while(@$job > 0){
     for(my $i=0;$i<@$job;$i++){
       my $state=$self->checkJob($$job[$i]);
       if($state==1){
         logmsg "A job finished: $$job[$i]{jobname} ($$job[$i]{jobid})" if($settings{verbose});
+        $numSlots = $numSlots - $$job[$i]{numcpus}; # not using these slots anymore
         splice(@$job,$i,1);
         last;
       } elsif($state==-1){
@@ -486,7 +499,7 @@ sub waitOnJobs{
     }
     sleep 1;
     # break out if you don't have to finish yet but you can still add in another job
-    last if(!$settings{mustfinish} && @$job<$settings{numnodes});
+    last if(!$settings{mustfinish} && @$job<$settings{numnodes} && $numSlots<$settings{maxslots});
   }
   return @$job;
 }
