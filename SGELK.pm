@@ -55,6 +55,7 @@ local $SIG{INT} = sub{ cleanAllJobs(); };
 my @jobsToClean=();
 my @jobsToMonitor=();
 sub cleanAllJobs{
+  return if(!@jobsToClean);
   logmsg "Cleaning all jobs";
   for (@jobsToClean){
     cleanAJob($_);
@@ -75,8 +76,9 @@ END{
 create a new instance of a scheduler.
 Arguments and their defaults:
   numnodes=>1 maximum nodes to use
-  numcpus=>1 maximum cpus that will be used per node
-  verbose=>1
+  numcpus=>1 maximum cpus that will be used per node in a script
+  maxslots=>100 maximum slots that you can use. Useful if you want to be limited by total slots instead of nodes or CPUs. E.g. {numnodes=>100,numcpus=>1,maxslots=>20}
+  verbose=>0
   workingdir=>$ENV{PWD} a directory that all nodes can access to read/write jobs and log files
   waitForEachJobToStart=>0 Allow each job to start as it's run (0), or to wait until the qstat sees the job before continuing (1)
   jobname=>... This is the name given to the job when you view it with qstat. By default, it will be named after the script that calls this module.
@@ -85,7 +87,6 @@ Arguments and their defaults:
 
 =cut
 
-# args can be numnodes=>6,numthreads=>8,verbose=>0
 sub new{
   my($class,%args)=@_;
   my $self=bless{},$class;
@@ -99,21 +100,11 @@ sub new{
   foreach my $key (keys %args) {
     my $nodash=$key;
     $nodash =~ s/^\-//;
-    if ($nodash eq "executable") {
-      $self->executable($args{$key});
-    }
-    elsif ($nodash eq "use_cwd") {
-      $self->use_cwd($args{$key});
-    }
-    elsif ($nodash eq "name") {$self->name($args{$key})}
-    else {
-      #$self->{$nodash}=$args{$key};
-      $self->set($nodash,$args{$key});
-    }
+    $self->set($nodash,$args{$key});
   }
 
   # set defaults if they are not set
-  my %default=(numnodes=>1,numcpus=>1,verbose=>1,waitForEachJobToStart=>0);
+  my %default=(numnodes=>1,numcpus=>1,verbose=>0,waitForEachJobToStart=>0);
   while(my($key,$value)=each(%default)){
     $self->settings($key,$value) if(!defined($self->settings($key)));
   }
