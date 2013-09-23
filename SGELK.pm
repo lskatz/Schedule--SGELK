@@ -430,9 +430,9 @@ sub qstat{
 
   my $content="";
   open(QSTAT,"qstat|") or die "ERROR: could not execute qstat! $!";
-  while(<QSTAT>){
-    s/^\s+|\s+$//g;
-    $content.="$_\n";
+  while(my $line=<QSTAT>){
+    $line=~s/^\s+|\s+$//g;
+    $content.="$line\n";
   }
   close QSTAT;
   $self->set("qstat",$content);
