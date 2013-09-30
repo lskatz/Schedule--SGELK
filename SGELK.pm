@@ -498,7 +498,7 @@ sub waitOnJobs{
         last;
       } elsif($state==-1){
         my $msg="A job failed ($$job[$i]{jobname} [$$job[$i]{jobid}]! Look at $$job[$i]{output} for more details.\nError message was ".$self->error()."\n".Dumper($$job[$i]);
-        die $msg if(!$$settings{warn_on_error});
+        die $msg if(!$settings{warn_on_error});
         # just print the warning if the script didn't die and forget about this dead job
         logmsg $msg;
         splice(@$job,$i,1);
