@@ -501,6 +501,8 @@ sub waitOnJobs{
         die $msg if(!$settings{warn_on_error});
         # just print the warning if the script didn't die and forget about this dead job
         logmsg $msg;
+        $numSlots = $numSlots - $$job[$i]{numcpus}; # not using these slots anymore
+        $self->error($msg);
         splice(@$job,$i,1);
         last;
       }
