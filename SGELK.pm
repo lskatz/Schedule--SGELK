@@ -85,6 +85,7 @@ Arguments and their defaults:
   workingdir=>$ENV{PWD} a directory that all nodes can access to read/write jobs and log files
   waitForEachJobToStart=>0 Allow each job to start as it's run (0), or to wait until the qstat sees the job before continuing (1)
   jobname=>... This is the name given to the job when you view it with qstat. By default, it will be named after the script that calls this module.
+  warn_on_error=>1 This will make the script give a warning instead of exiting
 
   Examples:
   {numnodes=>100,numcpus=>1,maxslots=>50} # for many small jobs
@@ -256,6 +257,8 @@ sub pleaseExecute{
   # it runs the command
   print SCRIPT "write_file('$running',$sanitized\n);\n";
   print SCRIPT "system($sanitized);\n";
+  # let the script try one more time if it fails
+  #print SCRIPT "system($sanitized) if \$?;\n";
   # print a parsable error if the script dies. This error will be in $output and in file $died
   print SCRIPT <<END;
 if(\$?){
@@ -494,7 +497,12 @@ sub waitOnJobs{
         splice(@$job,$i,1);
         last;
       } elsif($state==-1){
-        die "A job failed ($$job[$i]{jobname} [$$job[$i]{jobid}]! Look at $$job[$i]{output} for more details.\nError message was ".$self->error()."\n".Dumper($$job[$i]);
+        my $msg="A job failed ($$job[$i]{jobname} [$$job[$i]{jobid}]! Look at $$job[$i]{output} for more details.\nError message was ".$self->error()."\n".Dumper($$job[$i]);
+        die $msg if(!$$settings{warn_on_error});
+        # just print the warning if the script didn't die and forget about this dead job
+        logmsg $msg;
+        splice(@$job,$i,1);
+        last;
       }
     }
     sleep 1;
