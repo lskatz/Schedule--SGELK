@@ -86,6 +86,7 @@ Arguments and their defaults:
   waitForEachJobToStart=>0 Allow each job to start as it's run (0), or to wait until the qstat sees the job before continuing (1)
   jobname=>... This is the name given to the job when you view it with qstat. By default, it will be named after the script that calls this module.
   warn_on_error=>1 This will make the script give a warning instead of exiting
+  qsubxopts=>... These are extra options to pass to qsub.  E.g., changing the queue {qsubxopts=>"-q long.q"}
 
   Examples:
   {numnodes=>100,numcpus=>1,maxslots=>50} # for many small jobs
@@ -248,6 +249,8 @@ sub pleaseExecute{
   print SCRIPT "#\$ -pe smp $$settings{numcpus}\n";
   print SCRIPT "#\$ -o $output\n";
   print SCRIPT "#\$ -e $output\n";
+  print SCRIPT "# options specified by qsubxopts are in the next line:\n";
+  print SCRIPT "#\$ ".$sge->get("qsubxopts")."\n";
   print SCRIPT "use strict;\nuse warnings;\n";
   print SCRIPT "use File::Slurp qw/read_file write_file/;\n";
 
