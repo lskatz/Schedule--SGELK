@@ -249,8 +249,10 @@ sub pleaseExecute{
   print SCRIPT "#\$ -pe smp $$settings{numcpus}\n";
   print SCRIPT "#\$ -o $output\n";
   print SCRIPT "#\$ -e $output\n";
-  print SCRIPT "# options specified by qsubxopts are in the next line:\n";
-  print SCRIPT "#\$ ".$sge->get("qsubxopts")."\n";
+  if($self->get("qsubxopts")){
+    print SCRIPT "# options specified by qsubxopts are in the next line:\n";
+    print SCRIPT "#\$ ".$self->get("qsubxopts")."\n";
+  }
   print SCRIPT "use strict;\nuse warnings;\n";
   print SCRIPT "use File::Slurp qw/read_file write_file/;\n";
 
