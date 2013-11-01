@@ -87,6 +87,7 @@ Arguments and their defaults:
   jobname=>... This is the name given to the job when you view it with qstat. By default, it will be named after the script that calls this module.
   warn_on_error=>1 This will make the script give a warning instead of exiting
   qsubxopts=>... These are extra options to pass to qsub.  E.g., changing the queue {qsubxopts=>"-q long.q"}
+  noqsub=>1 Force performing a system call instead of using qsub
 
   Examples:
   {numnodes=>100,numcpus=>1,maxslots=>50} # for many small jobs
@@ -282,8 +283,16 @@ END
   # now run the script and get the jobid
   my %return=(submitted=>$submitted,running=>$running,finished=>$finished,died=>$died,tempdir=>$tempdir,output=>$output,cmd=>$cmd,script=>$script,jobname=>$$settings{jobname},numcpus=>$$settings{numcpus});
   my $qsub=$self->get("qsub");
-  if(!$qsub){
-    logmsg "Warning: qsub was not found! Running a system call instead.";
+  if(!$qsub || $$settings{noqsub}){
+    my $msg="Running a system call.";
+    if(!$qsub){
+      $msg="Warning: qsub was not found!  $msg";
+    } elsif($$settings{noqsub}){
+      $msg="noqsub was specified for this job.  $msg";
+    } else{
+      
+    }
+    logmsg $msg;
     system("perl $script;");
     die if $?;
     return %return if wantarray;
