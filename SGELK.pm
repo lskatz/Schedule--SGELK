@@ -240,11 +240,13 @@ sub pleaseExecute{
   my $prefix=($0 eq '-e')?"STDIN":$0;
   $prefix="$$settings{workingdir}/$prefix.$rand";
   my($submitted,$running,$finished,$died,$output)=("$prefix.submitted", "$prefix.running", "$prefix.finished","$prefix.died","$prefix.log");
-
+   
+  my $perl=`which perl`;
   open(SCRIPT,">",$script) or die "Could not write to temporary script: $!";
-  print SCRIPT "#!/usr/bin/env perl\n\n";
+  print SCRIPT "#! $perl\n\n";
   #   it has SGE params in it
   print SCRIPT "#\$ -N $$settings{jobname}\n";
+  print SCRIPT "#\$ -S $perl";
   print SCRIPT "#\$ -V\n";
   print SCRIPT "#\$ -wd $ENV{PWD}\n";
   print SCRIPT "#\$ -pe smp $$settings{numcpus}\n";
