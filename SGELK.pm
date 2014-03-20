@@ -498,6 +498,11 @@ Calls on checkJob() internally. Will die with an error message if a job dies.
 # If a job finishes, splice it from the job array.
 sub waitOnJobs{
   my($self,$job,$mustfinish)=@_;
+  
+  # if there is no qsub, then every job is only going one at a time
+  my $qsub=$self->get("qsub");
+  return @$job if(!$qsub);
+
   my %settings=$self->settings;
   $settings{mustfinish}=$mustfinish if(defined($mustfinish));
   if($settings{verbose}){
