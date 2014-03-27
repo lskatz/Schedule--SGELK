@@ -88,6 +88,7 @@ Arguments and their defaults:
   warn_on_error=>1 This will make the script give a warning instead of exiting
   qsubxopts=>... These are extra options to pass to qsub.  E.g., changing the queue {qsubxopts=>"-q long.q"}
   noqsub=>1 Force performing a system call instead of using qsub
+  queue=>all.q    Choose the queue to use for a new job.  Default: all.q
 
   Examples:
   {numnodes=>100,numcpus=>1,maxslots=>50} # for many small jobs
@@ -114,7 +115,7 @@ sub new{
   }
 
   # set defaults if they are not set
-  my %default=(numnodes=>50,numcpus=>128,verbose=>0,waitForEachJobToStart=>0,maxslots=>9999);
+  my %default=(numnodes=>50,numcpus=>128,verbose=>0,waitForEachJobToStart=>0,maxslots=>9999,queue=>"all.q");
   while(my($key,$value)=each(%default)){
     $self->settings($key,$value) if(!defined($self->settings($key)));
   }
@@ -252,6 +253,7 @@ sub pleaseExecute{
   print SCRIPT "#\$ -pe smp $$settings{numcpus}\n";
   print SCRIPT "#\$ -o $output\n";
   print SCRIPT "#\$ -e $output\n";
+  print SCRIPT "#\$ -q $$settings{queue}\n";
   if($self->get("qsubxopts")){
     print SCRIPT "# options specified by qsubxopts are in the next line:\n";
     print SCRIPT "#\$ ".$self->get("qsubxopts")."\n";
