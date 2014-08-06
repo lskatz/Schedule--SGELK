@@ -86,7 +86,7 @@ Arguments and their defaults:
   waitForEachJobToStart=>0 Allow each job to start as it's run (0), or to wait until the qstat sees the job before continuing (1)
   jobname=>... This is the name given to the job when you view it with qstat. By default, it will be named after the script that calls this module.
   warn_on_error=>1 This will make the script give a warning instead of exiting
-  qsubxopts=>... These are extra options to pass to qsub.  E.g., changing the queue {qsubxopts=>"-q long.q"}
+  qsubxopts=>... These are extra options to pass to qsub.  E.g., {qsubxopts=>"-V"}  Options are overwritten by appending them to the within-script options. Therefore this is not the best way to choose a different queue but it is a way to change a job name or the number of processors.
   noqsub=>1 Force performing a system call instead of using qsub
   queue=>all.q    Choose the queue to use for a new job.  Default: all.q
 
