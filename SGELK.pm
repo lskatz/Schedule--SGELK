@@ -246,11 +246,6 @@ sub pleaseExecute{
   open(SCRIPT,">",$script) or die "Could not write to temporary script: $!";
   print SCRIPT "#! $perl\n\n";
   #   It has SGE params in it.
-  #   qsubxopts get to be in here first but will be overwritten by later qsubopts below
-  if($self->get("qsubxopts")){
-    print SCRIPT "# options specified by qsubxopts are in the next line:\n";
-    print SCRIPT "#\$ ".$self->get("qsubxopts")."\n";
-  }
   print SCRIPT "#\$ -N $$settings{jobname}\n";
   print SCRIPT "#\$ -S $perl";
   print SCRIPT "#\$ -V\n";
@@ -259,6 +254,11 @@ sub pleaseExecute{
   print SCRIPT "#\$ -o $output\n";
   print SCRIPT "#\$ -e $output\n";
   print SCRIPT "#\$ -q $$settings{queue}\n";
+  #   qsubxopts get to be in here first but will be overwritten by later qsubopts below
+  if($self->get("qsubxopts")){
+    print SCRIPT "# options specified by qsubxopts are in the next line:\n";
+    print SCRIPT "#\$ ".$self->get("qsubxopts")."\n";
+  }
   print SCRIPT "use strict;\nuse warnings;\n";
   print SCRIPT "use File::Slurp qw/read_file write_file/;\n";
 
