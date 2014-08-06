@@ -235,7 +235,7 @@ sub pleaseExecute{
 
   my $rand=int(rand(999999));
   my $tempdir=$$settings{workingdir};
-  # create a bash script with the literal command in it
+  # create a perl script with the literal command in it
   my $script="$tempdir/qsub.$rand.pl";
 
   my $prefix=($0 eq '-e')?"STDIN":$0;
@@ -245,7 +245,12 @@ sub pleaseExecute{
   my $perl=`which perl`;
   open(SCRIPT,">",$script) or die "Could not write to temporary script: $!";
   print SCRIPT "#! $perl\n\n";
-  #   it has SGE params in it
+  #   It has SGE params in it.
+  #   qsubxopts get to be in here first but will be overwritten by later qsubopts below
+  if($self->get("qsubxopts")){
+    print SCRIPT "# options specified by qsubxopts are in the next line:\n";
+    print SCRIPT "#\$ ".$self->get("qsubxopts")."\n";
+  }
   print SCRIPT "#\$ -N $$settings{jobname}\n";
   print SCRIPT "#\$ -S $perl";
   print SCRIPT "#\$ -V\n";
@@ -254,10 +259,6 @@ sub pleaseExecute{
   print SCRIPT "#\$ -o $output\n";
   print SCRIPT "#\$ -e $output\n";
   print SCRIPT "#\$ -q $$settings{queue}\n";
-  if($self->get("qsubxopts")){
-    print SCRIPT "# options specified by qsubxopts are in the next line:\n";
-    print SCRIPT "#\$ ".$self->get("qsubxopts")."\n";
-  }
   print SCRIPT "use strict;\nuse warnings;\n";
   print SCRIPT "use File::Slurp qw/read_file write_file/;\n";
 
