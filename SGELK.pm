@@ -217,47 +217,47 @@ You can also specify temporary settings for this one command with a referenced h
 sub pleaseExecute{
   my($self,$cmd,$tmpSettings)=@_;
   local $0=basename $0;
-  my $settings=$self->settings;
+  my %settings=%{ $self->settings };
 
   # read in any temporary settings for this command
   $tmpSettings={} if(!defined($tmpSettings));
-  $$settings{$_}=$$tmpSettings{$_} for(keys(%$tmpSettings));
+  $settings{$_}=$$tmpSettings{$_} for(keys(%$tmpSettings));
 
   # default settings for undefined settings
   my $jobid=-1; # -1 is an error state
-  $$settings{jobname}||="run$0";
-  $$settings{logfile}||="$0.log";
-  $$settings{numcpus}||=1;
-  $$settings{timeout}||=60; # how long we will wait for qsub to start
+  $settings{jobname}||="sgelk$0";
+  $settings{logfile}||="$0.log";
+  $settings{numcpus}||=1;
+  $settings{timeout}||=60; # how long we will wait for qsub to start
   return 0 if($cmd=~/^\s*$/); # if there's no command, then no worries
 
   $self->waitOnJobs(\@jobsToMonitor,0); # wait until the job can be submitted
 
   my $rand=int(rand(999999));
-  my $tempdir=$$settings{workingdir};
+  my $tempdir=$settings{workingdir};
   # create a perl script with the literal command in it
   my $script="$tempdir/qsub.$rand.pl";
 
   my $prefix=($0 eq '-e')?"STDIN":$0;
-  $prefix="$$settings{workingdir}/$prefix.$rand";
+  $prefix="$settings{workingdir}/$prefix.$rand";
   my($submitted,$running,$finished,$died,$output)=("$prefix.submitted", "$prefix.running", "$prefix.finished","$prefix.died","$prefix.log");
    
   my $perl=`which perl`;
   open(SCRIPT,">",$script) or die "Could not write to temporary script: $!";
   print SCRIPT "#! $perl\n\n";
   #   It has SGE params in it.
-  print SCRIPT "#\$ -N $$settings{jobname}\n";
+  print SCRIPT "#\$ -N $settings{jobname}\n";
   print SCRIPT "#\$ -S $perl";
   print SCRIPT "#\$ -V\n";
   print SCRIPT "#\$ -wd $ENV{PWD}\n";
-  print SCRIPT "#\$ -pe smp $$settings{numcpus}\n";
+  print SCRIPT "#\$ -pe smp $settings{numcpus}\n";
   print SCRIPT "#\$ -o $output\n";
   print SCRIPT "#\$ -e $output\n";
-  print SCRIPT "#\$ -q $$settings{queue}\n";
+  print SCRIPT "#\$ -q $settings{queue}\n";
   #   qsubxopts get to be in here first but will be overwritten by later qsubopts below
-  if($self->get("qsubxopts")){
+  if(my $opts=$settings{qsubxopts}){
     print SCRIPT "# options specified by qsubxopts are in the next line:\n";
-    print SCRIPT "#\$ ".$self->get("qsubxopts")."\n";
+    print SCRIPT "#\$ $opts\n";
   }
   print SCRIPT "use strict;\nuse warnings;\n";
   print SCRIPT "use File::Slurp qw/read_file write_file/;\n";
@@ -286,13 +286,13 @@ END
   #system("cat $script");sleep 60;die;
 
   # now run the script and get the jobid
-  my %return=(submitted=>$submitted,running=>$running,finished=>$finished,died=>$died,tempdir=>$tempdir,output=>$output,cmd=>$cmd,script=>$script,jobname=>$$settings{jobname},numcpus=>$$settings{numcpus});
+  my %return=(submitted=>$submitted,running=>$running,finished=>$finished,died=>$died,tempdir=>$tempdir,output=>$output,cmd=>$cmd,script=>$script,jobname=>$settings{jobname},numcpus=>$settings{numcpus});
   my $qsub=$self->get("qsub");
-  if(!$qsub || $$settings{noqsub}){
+  if(!$qsub || $settings{noqsub}){
     my $msg="Running a system call.";
     if(!$qsub){
       $msg="Warning: qsub was not found!  $msg";
-    } elsif($$settings{noqsub}){
+    } elsif($settings{noqsub}){
       $msg="noqsub was specified for this job.  $msg";
     } else{
       
@@ -308,7 +308,7 @@ END
   my $out=`$qsub $script`; chomp($out);
   if($out=~/Your job (\d+)/){
     $jobid=$1;
-    logmsg $out if($$settings{verbose});
+    logmsg $out if($settings{verbose});
   } else {
     logmsg "WARNING: the last job submitted did not have an obvious jobid. It can't be tracked!";
   }
@@ -318,7 +318,7 @@ END
   while(!-e $submitted){
     last if(!$self->settings("waitForEachJobToStart"));
     sleep 1;
-    die "Command timed out!\n  $cmd" if((time-$started)>$$settings{timeout});
+    die "Command timed out!\n  $cmd" if((time-$started)>$settings{timeout});
     die "Command resulted in an error. qstat -j $jobid for more info\n  $cmd" if($self->jobStatus($jobid) eq 'Eqw');
   }
 
@@ -327,7 +327,7 @@ END
   $return{jobid}=$jobid;
   push(@jobsToClean,\%return) if(!$self->settings("keep"));
   push(@jobsToMonitor,\%return);
-  $numSlots+=$$settings{numcpus}; # claim these cpus
+  $numSlots+=$settings{numcpus}; # claim these cpus
   return %return if wantarray;
   return \%return;
 }
