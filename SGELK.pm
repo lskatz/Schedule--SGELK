@@ -46,6 +46,7 @@ use File::Spec;
 use File::Slurp qw/read_file write_file/;
 use File::Temp qw/tempdir/;
 use String::Escape qw/escape/;
+use Parallel::ForkManager;
 
 # some global variables
 my @jobsToClean=();
