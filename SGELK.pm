@@ -439,9 +439,13 @@ sub jobStatus{
 
 =pod
 
+=over
+
 =item qstat
 
 Runs qstat and caches the result for one second. Or, returns the cached result of qstat
+
+=back
 
 =cut
 
