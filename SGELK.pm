@@ -24,6 +24,10 @@ A module for submitting jobs to an SGE queue.
 A quick test for this module is the following one-liner
   perl -MSchedule::SGELK -e '$sge=Schedule::SGELK->new(numnodes=>5); for(1..3){$sge->pleaseExecute("sleep 3");}$sge->wrapItUp();'
 
+Another quick test is to use the test() method, if you want to see standardized text output (see test() below)
+  perl -MSchedule::SGELK -e '$sge=Schedule::SGELK->new(-numnodes=>2,-numcpus=>8); $sge->test(\%tmpSettings);'
+  
+
 =head1 DESCRIPTION
 
 A module for submitting jobs to an SGE queue. Monitoring is 
@@ -641,5 +645,42 @@ sub command{
   return $job;
 }
 
+=pod
+
+=over
+
+=item test
+
+Use this method to perform a test. The test sends 
+ten jobs that print debugging information.
+
+You can give an optional hash argument to send other settings as described in new().
+
+perl -MSchedule::SGELK -e '$sge=Schedule::SGELK->new(-numnodes=>2,-numcpus=>8); $sge->test(\%tmpSettings);'
+
+=back
+
+=cut
+
+sub test{
+  my($self,$tmpSettings)=@_;
+
+  # get settings
+  my %settings=%{ $self->settings };
+  # read in any temporary settings for this command
+  $tmpSettings={} if(!defined($tmpSettings));
+  $$tmpSettings{verbose}=1; # make sure it's verbose for debugging
+  $settings{$_}=$$tmpSettings{$_} for(keys(%$tmpSettings));
+
+  # execute the jobs
+  for(1..$self->get("numnodes")){
+    logmsg "Job $_ is being submitted";
+    my $text="Job count\t$_\n";
+    $text.="$_\t$settings{$_}\n" for(keys(%settings));
+    $self->pleaseExecute("echo '$text'|column -t",$tmpSettings);
+  }
+  $self->wrapItUp();
+  return 1;
+}
 
 1;
