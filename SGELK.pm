@@ -259,7 +259,7 @@ sub pleaseExecute{
   print SCRIPT "#! $perl\n\n";
   #   It has SGE params in it.
   print SCRIPT "#\$ -N $settings{jobname}\n";
-  print SCRIPT "#\$ -S $perl";
+  print SCRIPT "#\$ -S $perl\n";
   print SCRIPT "#\$ -V\n";
   print SCRIPT "#\$ -wd $ENV{PWD}\n";
   print SCRIPT "#\$ -pe smp $settings{numcpus}\n";
