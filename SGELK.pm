@@ -48,6 +48,7 @@ use File::Temp qw/tempdir/;
 use String::Escape qw/escape/;
 
 my $has_threads=eval{
+  return 0; # this isn't working yet
   require threads;
   return 1;
 };
@@ -311,6 +312,7 @@ END
   my $out=`$qsub $script`; chomp($out);
   if($out=~/Your job (\d+)/){
     $jobid=$1;
+    $out.=" from $script";
     logmsg $out if($settings{verbose});
   } else {
     logmsg "WARNING: the last job submitted did not have an obvious jobid. It can't be tracked!";
