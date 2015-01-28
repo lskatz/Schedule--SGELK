@@ -616,6 +616,10 @@ sub cleanAJob{
   for (qw(running submitted finished output script died)){
     unlink $$job{$_};
   }
+
+  # if there is no jobid, return 0 and do not qdel
+  $$job{jobid} || return 0;
+
   system("qdel $$job{jobid} 2>/dev/null | grep -v 'does not exist'");
   #die "Internal error" if $?;
   return 1;
