@@ -612,13 +612,11 @@ Do not use externally.
 
 sub cleanAJob{
   my($job)=@_;
-  logmsg $$job{jobid};
+  my $jobid=$$job{jobid} || return 0;
+  logmsg $jobid;
   for (qw(running submitted finished output script died)){
     unlink $$job{$_};
   }
-
-  # if there is no jobid, return 0 and do not qdel
-  $$job{jobid} || return 0;
 
   system("qdel $$job{jobid} 2>/dev/null | grep -v 'does not exist'");
   #die "Internal error" if $?;
