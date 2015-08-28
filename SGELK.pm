@@ -136,6 +136,7 @@ sub new{
 
   # executables
   for(qw(qsub qstat qdel)){
+    # See if it exists
     my $exec=`which $_ 2>/dev/null`; 
     $exec="" if $?;
     chomp($exec);
@@ -143,6 +144,13 @@ sub new{
 
     $self->set("scheduler","") if(!$exec);
   }
+  # See if qsub executes properly
+  system("echo 'sleep 0' -o /dev/null -j y -cwd -N qsubSgelkTester | qsub");
+  if($?){
+    $self->set("scheduler","");
+    $self->set("qsub","");
+  }
+
   $self->set("scheduler","") if($self->get("noqsub"));
 
   return $self;
