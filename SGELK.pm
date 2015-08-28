@@ -620,10 +620,12 @@ Do not use externally.
 
 sub cleanAJob{
   my($job)=@_;
-  logmsg $$job{jobid};
+  my $jobid=$$job{jobid} || return 0;
+  logmsg $jobid;
   for (qw(running submitted finished output script died)){
     unlink $$job{$_};
   }
+
   system("qdel $$job{jobid} 2>/dev/null | grep -v 'does not exist'");
   #die "Internal error" if $?;
   return 1;
