@@ -443,6 +443,7 @@ Given an SGE job id, it returns its qstat status
 sub jobStatus{
   my($self,$jobid)=@_;
   my $state=0;
+  $jobid||=0;
   my $qstat=$self->qstat;
   for(split(/\n/,$qstat)){
     my @F=split /\s+/;
@@ -581,6 +582,7 @@ sub waitOnJobs{
   }
   while(@$job > 0){
     for(my $i=0;$i<@$job;$i++){
+      $$job[$i]{jobid}||=0;
       my $state=$self->checkJob($$job[$i]);
       if($state==1){
         logmsg "A job finished: $$job[$i]{jobname} ($$job[$i]{jobid})" if($settings{verbose});
