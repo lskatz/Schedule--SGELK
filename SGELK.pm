@@ -145,7 +145,7 @@ sub new{
     $self->set("scheduler","") if(!$exec);
   }
   # See if qsub executes properly
-  system("echo 'sleep 0' -o /dev/null -j y -cwd -N qsubSgelkTester | qsub");
+  system("echo 'sleep 0' | qsub -o /dev/null -j y -cwd -N qsubSgelkTester ");
   if($?){
     $self->set("scheduler","");
     $self->set("qsub","");
