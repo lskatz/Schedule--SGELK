@@ -144,13 +144,18 @@ sub new{
 
     $self->set("scheduler","") if(!$exec);
   }
-  # See if qsub executes properly
-  system("echo 'sleep 0' | qsub -o /dev/null -j y -cwd -N qsubSgelkTester ");
-  if($?){
+
+  # See if SGE is present
+  if(-e $ENV{SGE_ROOT}){
+    $self->set("scheduler","SGE");
+  } else{
+    logmsg "Env variable \$SGE_ROOT is not set. I will not use SGE";
     $self->set("scheduler","");
     $self->set("qsub","");
   }
 
+  # Remove the scheduler option if the user explicitly
+  # chooses not to use it.
   $self->set("scheduler","") if($self->get("noqsub"));
 
   return $self;
