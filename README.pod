@@ -7,6 +7,7 @@ Schedule::SGELK
 =head1 SYNOPSIS
 
 A module for submitting jobs to an SGE queue.
+
   use Schedule::SGELK
   my $sge=Schedule::SGELK->new(verbose=>1,numnodes=>5,numcpus=>8,workingdir=>"SGE/",waitForEachJobToStart=>1);
   $sge->set("jobname","thisisaname");
