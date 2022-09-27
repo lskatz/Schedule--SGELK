@@ -41,7 +41,8 @@ Author: Lee Katz <lkatz@cdc.gov>
 
 - `sub new` create a new instance of a scheduler.
 
-    Arguments and their defaults:
+Arguments and their defaults:
+
       numnodes=>50 maximum nodes to use
       numcpus=>128 maximum cpus that will be used per node in a script
       maxslots=>9999 maximum slots that you can use. Useful if you want to be limited by total slots instead of nodes or CPUs. E.g. {numnodes=>100,numcpus=>1,maxslots=>20}
@@ -54,7 +55,8 @@ Author: Lee Katz <lkatz@cdc.gov>
       noqsub=>1 Force performing a system call instead of using qsub
       queue=>all.q    Choose the queue to use for a new job.  Default: all.q
 
-        Examples:
+Examples:
+
         {numnodes=>100,numcpus=>1,maxslots=>50} # for many small jobs
         {numnodes=>5,numcpus=>8,maxslots=>40} # for a few larger jobs (note: maxslots should be >= numnodes * maxslots
 
