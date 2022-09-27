@@ -1,134 +1,181 @@
-NAME
-    Schedule::SGELK
 
-SYNOPSIS
-    A module for submitting jobs to an SGE queue. use Schedule::SGELK my
-    $sge=Schedule::SGELK->new(verbose=>1,numnodes=>5,numcpus=>8,workingdir=>
-    "SGE/",waitForEachJobToStart=>1); $sge->set("jobname","thisisaname"); #
-    run a series of jobs and wait for them all to finish my
-    $job=$sge->pleaseExecute("sleep 60"); my
-    $job2=$sge->pleaseExecute("sleep 60"); $sge->wrapItUp(); # or you can
-    specify which jobs to wait for $sge->waitOnJobs([$job,$job2],1); # 1
-    means wait for all jobs to finish; 0 to wait for any free node # or in
-    one step $sge->pleaseExecute_andWait("sleep 60");
+<html>
+<head>
+<title></title>
+<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1" />
+</head>
+<body>
 
-    A quick test for this module is the following one-liner perl
-    -MSchedule::SGELK -e '$sge=Schedule::SGELK->new(numnodes=>5);
-    for(1..3){$sge->pleaseExecute("sleep 3");}$sge->wrapItUp();'
 
-    Another quick test is to use the test() method, if you want to see
-    standardized text output (see test() below) perl -MSchedule::SGELK -e
-    '$sge=Schedule::SGELK->new(-numnodes=>2,-numcpus=>8);
-    $sge->test(\%tmpSettings);'
+<h1 id="NAME">NAME</h1>
 
-DESCRIPTION
-    A module for submitting jobs to an SGE queue. Monitoring is performed
-    using a combination of monitoring files written to the hard drive and
-    qstat. Submitting is performed internally by making a perl script.
+<p>Schedule::SGELK</p>
 
-AUTHOR
-    Author: Lee Katz <lkatz@cdc.gov>
+<h1 id="SYNOPSIS">SYNOPSIS</h1>
 
-  METHODS
-    sub new
-        create a new instance of a scheduler. Arguments and their defaults:
-        numnodes=>50 maximum nodes to use numcpus=>128 maximum cpus that
-        will be used per node in a script maxslots=>9999 maximum slots that
-        you can use. Useful if you want to be limited by total slots instead
-        of nodes or CPUs. E.g. {numnodes=>100,numcpus=>1,maxslots=>20}
-        verbose=>0 workingdir=>$ENV{PWD} a directory that all nodes can
-        access to read/write jobs and log files waitForEachJobToStart=>0
-        Allow each job to start as it's run (0), or to wait until the qstat
-        sees the job before continuing (1) jobname=>... This is the name
-        given to the job when you view it with qstat. By default, it will be
-        named after the script that calls this module. warn_on_error=>1 This
-        will make the script give a warning instead of exiting
-        qsubxopts=>... These are extra options to pass to qsub. E.g.,
-        {qsubxopts=>"-V"} Options are overwritten by appending them to the
-        within-script options. Therefore this is not the best way to choose
-        a different queue but it is a way to change a job name or the number
-        of processors. noqsub=>1 Force performing a system call instead of
-        using qsub queue=>all.q Choose the queue to use for a new job.
-        Default: all.q
+<p>A module for submitting jobs to an SGE queue. use Schedule::SGELK my $sge=Schedule::SGELK-&gt;new(verbose=&gt;1,numnodes=&gt;5,numcpus=&gt;8,workingdir=&gt;&quot;SGE/&quot;,waitForEachJobToStart=&gt;1); $sge-&gt;set(&quot;jobname&quot;,&quot;thisisaname&quot;); # run a series of jobs and wait for them all to finish my $job=$sge-&gt;pleaseExecute(&quot;sleep 60&quot;); my $job2=$sge-&gt;pleaseExecute(&quot;sleep 60&quot;); $sge-&gt;wrapItUp(); # or you can specify which jobs to wait for $sge-&gt;waitOnJobs([$job,$job2],1); # 1 means wait for all jobs to finish; 0 to wait for any free node # or in one step $sge-&gt;pleaseExecute_andWait(&quot;sleep 60&quot;);</p>
 
-          Examples:
-          {numnodes=>100,numcpus=>1,maxslots=>50} # for many small jobs
-          {numnodes=>5,numcpus=>8,maxslots=>40} # for a few larger jobs (note: maxslots should be >= numnodes * maxslots
+<p>A quick test for this module is the following one-liner perl -MSchedule::SGELK -e &#39;$sge=Schedule::SGELK-&gt;new(numnodes=&gt;5); for(1..3){$sge-&gt;pleaseExecute(&quot;sleep 3&quot;);}$sge-&gt;wrapItUp();&#39;</p>
 
-    sub error($msg,$exit_code) or error()
-        Get or set the error. Can set the error code too, if provided.
+<p>Another quick test is to use the test() method, if you want to see standardized text output (see test() below) perl -MSchedule::SGELK -e &#39;$sge=Schedule::SGELK-&gt;new(-numnodes=&gt;2,-numcpus=&gt;8); $sge-&gt;test(\%tmpSettings);&#39;</p>
 
-    sub set() get() settings()
-        Get or set a setting. All settings are listed under sub new(). If a
-        setting is provided without a value, then nothing new will be set,
-        and only the value of the specified setting will be returned.
+<h1 id="DESCRIPTION">DESCRIPTION</h1>
 
-    pleaseExecute()
-        This is the main method. It will submit a command to the cluster.
-        $sge->set("jobname","a_nu_start"); $sge->pleaseExecute("someCommand
-        with parameters");
+<p>A module for submitting jobs to an SGE queue. Monitoring is performed using a combination of monitoring files written to the hard drive and qstat. Submitting is performed internally by making a perl script.</p>
 
-        If you are already occupying more than numnodes, then it will pause
-        before executing the command. It will also create many files under
-        workingdir, so be sure to specify it. The workingdir is the current
-        directory by default.
+<h1 id="AUTHOR">AUTHOR</h1>
 
-        You can also specify temporary settings for this one command with a
-        referenced hash.
+<p>Author: Lee Katz &lt;lkatz@cdc.gov&gt;</p>
 
-          $sge->pleaseExecute("someCommand with parameters",{jobname=>"a_nu_start",numcpus=>2});
+<h2 id="METHODS">METHODS</h2>
 
-    pleaseExecute_andWait()
-        Exact same as pleaseExecute(), except it will wait for the command
-        to finish before continuing. Internally calls pleaseExecute() and
-        then waitOnJobs(). However one key difference between
-        pleaseExecute() and this sub is that you can give a list of
-        commands.
+<dl>
 
-          # this will take 100 seconds because all commands have to finish.
-          $sge->pleaseExecute_andWait(["sleep 60","sleep 100","sleep 3"]);
+<dt>sub new</dt>
+<dd>
 
-    checkJob($jobHash)
-        Checks the status of a given job. The job variable is obtained from
-        pleaseExecute(). $self->error can be set if there is an error in the
-        job. Return values: 1 for finished; 0 for still running or hasn't
-        started; -1 for error.
+<p>create a new instance of a scheduler. Arguments and their defaults: numnodes=&gt;50 maximum nodes to use numcpus=&gt;128 maximum cpus that will be used per node in a script maxslots=&gt;9999 maximum slots that you can use. Useful if you want to be limited by total slots instead of nodes or CPUs. E.g. {numnodes=&gt;100,numcpus=&gt;1,maxslots=&gt;20} verbose=&gt;0 workingdir=&gt;$ENV{PWD} a directory that all nodes can access to read/write jobs and log files waitForEachJobToStart=&gt;0 Allow each job to start as it&#39;s run (0), or to wait until the qstat sees the job before continuing (1) jobname=&gt;... This is the name given to the job when you view it with qstat. By default, it will be named after the script that calls this module. warn_on_error=&gt;1 This will make the script give a warning instead of exiting qsubxopts=&gt;... These are extra options to pass to qsub. E.g., {qsubxopts=&gt;&quot;-V&quot;} Options are overwritten by appending them to the within-script options. Therefore this is not the best way to choose a different queue but it is a way to change a job name or the number of processors. noqsub=&gt;1 Force performing a system call instead of using qsub queue=&gt;all.q Choose the queue to use for a new job. Default: all.q</p>
 
-    jobStatus(jobid)
-        Given an SGE job id, it returns its qstat status
+<pre><code>  Examples:
+  {numnodes=&gt;100,numcpus=&gt;1,maxslots=&gt;50} # for many small jobs
+  {numnodes=&gt;5,numcpus=&gt;8,maxslots=&gt;40} # for a few larger jobs (note: maxslots should be &gt;= numnodes * maxslots</code></pre>
 
-    qstat
-        Runs qstat and caches the result for one second. Or, returns the
-        cached result of qstat
+</dd>
+</dl>
 
-    wrapItUp()
-        Waits on all jobs to finish before pausing the program. Calls
-        waitOnJobs or joinAllThreads internally. Does not take any
-        parameters.
+<dl>
 
-    joinAllThreads($jobList)
-        Joins all threads. This is if you have ithreads and if the scheduler
-        is not set. For example, if you specify noqsub or if qsub executable
-        is not found.
+<dt>sub error($msg,$exit_code) or error()</dt>
+<dd>
 
-    waitOnJobs($jobList,[$mustFinish])
-        Waits on all given jobs to finish. The job list are jobs as given by
-        pleaseExecute(). If $mustFinish evaluates to true, then the program
-        will pause until all jobs are finished. Calls on checkJob()
-        internally. Will die with an error message if a job dies.
+<p>Get or set the error. Can set the error code too, if provided.</p>
 
-    cleanAJob
-        This is internally used for cleaning up files after a job is done.
-        Do not use externally.
+</dd>
+</dl>
 
-    test
-        Use this method to perform a test. The test sends ten jobs that
-        print debugging information.
+<dl>
 
-        You can give an optional hash argument to send other settings as
-        described in new().
+<dt>sub set() get() settings()</dt>
+<dd>
 
-        perl -MSchedule::SGELK -e
-        '$sge=Schedule::SGELK->new(-numnodes=>2,-numcpus=>8);
-        $sge->test(\%tmpSettings);'
+<p>Get or set a setting. All settings are listed under sub new(). If a setting is provided without a value, then nothing new will be set, and only the value of the specified setting will be returned.</p>
+
+</dd>
+</dl>
+
+<dl>
+
+<dt>pleaseExecute()</dt>
+<dd>
+
+<p>This is the main method. It will submit a command to the cluster. $sge-&gt;set(&quot;jobname&quot;,&quot;a_nu_start&quot;); $sge-&gt;pleaseExecute(&quot;someCommand with parameters&quot;);</p>
+
+<p>If you are already occupying more than numnodes, then it will pause before executing the command. It will also create many files under workingdir, so be sure to specify it. The workingdir is the current directory by default.</p>
+
+<p>You can also specify temporary settings for this one command with a referenced hash.</p>
+
+<pre><code>  $sge-&gt;pleaseExecute(&quot;someCommand with parameters&quot;,{jobname=&gt;&quot;a_nu_start&quot;,numcpus=&gt;2});</code></pre>
+
+</dd>
+</dl>
+
+<dl>
+
+<dt>pleaseExecute_andWait()</dt>
+<dd>
+
+<p>Exact same as pleaseExecute(), except it will wait for the command to finish before continuing. Internally calls pleaseExecute() and then waitOnJobs(). However one key difference between pleaseExecute() and this sub is that you can give a list of commands.</p>
+
+<pre><code>  # this will take 100 seconds because all commands have to finish.
+  $sge-&gt;pleaseExecute_andWait([&quot;sleep 60&quot;,&quot;sleep 100&quot;,&quot;sleep 3&quot;]);</code></pre>
+
+</dd>
+</dl>
+
+<dl>
+
+<dt>checkJob($jobHash)</dt>
+<dd>
+
+<p>Checks the status of a given job. The job variable is obtained from pleaseExecute(). $self-&gt;error can be set if there is an error in the job. Return values: 1 for finished; 0 for still running or hasn&#39;t started; -1 for error.</p>
+
+</dd>
+</dl>
+
+<dl>
+
+<dt>jobStatus(jobid)</dt>
+<dd>
+
+<p>Given an SGE job id, it returns its qstat status</p>
+
+</dd>
+</dl>
+
+<dl>
+
+<dt>qstat</dt>
+<dd>
+
+<p>Runs qstat and caches the result for one second. Or, returns the cached result of qstat</p>
+
+</dd>
+</dl>
+
+<dl>
+
+<dt>wrapItUp()</dt>
+<dd>
+
+<p>Waits on all jobs to finish before pausing the program. Calls waitOnJobs or joinAllThreads internally. Does not take any parameters.</p>
+
+</dd>
+</dl>
+
+<dl>
+
+<dt>joinAllThreads($jobList)</dt>
+<dd>
+
+<p>Joins all threads. This is if you have ithreads and if the scheduler is not set. For example, if you specify noqsub or if qsub executable is not found.</p>
+
+</dd>
+</dl>
+
+<dl>
+
+<dt>waitOnJobs($jobList,[$mustFinish])</dt>
+<dd>
+
+<p>Waits on all given jobs to finish. The job list are jobs as given by pleaseExecute(). If $mustFinish evaluates to true, then the program will pause until all jobs are finished. Calls on checkJob() internally. Will die with an error message if a job dies.</p>
+
+</dd>
+</dl>
+
+<dl>
+
+<dt>cleanAJob</dt>
+<dd>
+
+<p>This is internally used for cleaning up files after a job is done. Do not use externally.</p>
+
+</dd>
+</dl>
+
+<dl>
+
+<dt>test</dt>
+<dd>
+
+<p>Use this method to perform a test. The test sends ten jobs that print debugging information.</p>
+
+<p>You can give an optional hash argument to send other settings as described in new().</p>
+
+<p>perl -MSchedule::SGELK -e &#39;$sge=Schedule::SGELK-&gt;new(-numnodes=&gt;2,-numcpus=&gt;8); $sge-&gt;test(\%tmpSettings);&#39;</p>
+
+</dd>
+</dl>
+
+</body>
+</html>
 
