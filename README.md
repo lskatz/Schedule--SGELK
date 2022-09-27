@@ -58,7 +58,7 @@ Arguments and their defaults:
 Examples:
 
         {numnodes=>100,numcpus=>1,maxslots=>50} # for many small jobs
-        {numnodes=>5,numcpus=>8,maxslots=>40} # for a few larger jobs (note: maxslots should be >= numnodes * maxslots
+        {numnodes=>5,numcpus=>8,maxslots=>40} # for a few larger jobs. NOTE: maxslots should be >= numnodes * maxslots
 
 - `sub error($msg,$exit\_code) or error()`
 
@@ -95,47 +95,48 @@ give a list of commands.
     # this will take 100 seconds because all commands have to finish.
     $sge->pleaseExecute_andWait(["sleep 60","sleep 100","sleep 3"]);
 
-- checkJob($jobHash)
+- `checkJob($jobHash)`
 
-    Checks the status of a given job. The job variable is obtained from pleaseExecute().
-    $self->error can be set if there is an error in the job. Return values:
-    1 for finished; 0 for still running or hasn't started; -1 for error.
+Checks the status of a given job. The job variable is obtained from pleaseExecute().
+$self->error can be set if there is an error in the job. Return values:
+1 for finished; 0 for still running or hasn't started; -1 for error.
 
-- jobStatus(jobid)
+- `jobStatus(jobid)`
 
-    Given an SGE job id, it returns its qstat status
+Given an SGE job id, it returns its qstat status
 
-- qstat
+- `qstat`
 
-    Runs qstat and caches the result for one second. Or, returns the cached result of qstat
+Runs qstat and caches the result for one second. Or, returns the cached result of qstat
 
-- wrapItUp()
+- `wrapItUp()`
 
-    Waits on all jobs to finish before pausing the program.
-    Calls waitOnJobs or joinAllThreads internally. Does not take any parameters.
+Waits on all jobs to finish before pausing the program.
+Calls waitOnJobs or joinAllThreads internally. Does not take any parameters.
 
-- joinAllThreads($jobList)
+- `joinAllThreads($jobList)`
 
-    Joins all threads.  This is if you have ithreads and if the scheduler is not set.
-    For example, if you specify noqsub or if qsub executable is not found.
+Joins all threads.  This is if you have ithreads and if the scheduler is not set.
+For example, if you specify noqsub or if qsub executable is not found.
 
-- waitOnJobs($jobList,\[$mustFinish\])
+- `waitOnJobs($jobList,\[$mustFinish\])`
 
-    Waits on all given jobs to finish. The job list are jobs as given by pleaseExecute().
-    If $mustFinish evaluates to true, then the program will pause until
-    all jobs are finished.
-    Calls on checkJob() internally. Will die with an error message if a job dies.
+Waits on all given jobs to finish. The job list are jobs as given by pleaseExecute().
+If $mustFinish evaluates to true, then the program will pause until
+all jobs are finished.
+Calls on checkJob() internally. Will die with an error message if a job dies.
 
-- cleanAJob
+- `cleanAJob`
 
-    This is internally used for cleaning up files after a job is done. 
-    Do not use externally.
+This is internally used for cleaning up files after a job is done. 
+Do not use externally.
 
-- test
+- `test`
 
-    Use this method to perform a test. The test sends 
-    ten jobs that print debugging information.
+Use this method to perform a test. The test sends 
+ten jobs that print debugging information.
 
-    You can give an optional hash argument to send other settings as described in new().
+You can give an optional hash argument to send other settings as described in new().
 
     perl -MSchedule::SGELK -e '$sge=Schedule::SGELK->new(-numnodes=>2,-numcpus=>8); $sge->test(\\%tmpSettings);'
+
