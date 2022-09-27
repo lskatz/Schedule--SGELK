@@ -14,7 +14,7 @@ A module for submitting jobs to an SGE queue.
     my $job2=$sge->pleaseExecute("sleep 60");
     $sge->wrapItUp();
     # or you can specify which jobs to wait for
-    $sge->waitOnJobs(\[$job,$job2\],1); # 1 means wait for all jobs to finish; 0 to wait for any free node
+    $sge->waitOnJobs([$job,$job2],1); # 1 means wait for all jobs to finish; 0 to wait for any free node
     # or in one step
     $sge->pleaseExecute\_andWait("sleep 60");
 
@@ -50,7 +50,7 @@ Arguments and their defaults:
       workingdir=>$ENV{PWD} a directory that all nodes can access to read/write jobs and log files
       waitForEachJobToStart=>0 Allow each job to start as it's run (0), or to wait until the qstat sees the job before continuing (1)
       jobname=>... This is the name given to the job when you view it with qstat. By default, it will be named after the script that calls this module.
-      warn\_on\_error=>1 This will make the script give a warning instead of exiting
+      warn_on_error=>1 This will make the script give a warning instead of exiting
       qsubxopts=>... These are extra options to pass to qsub.  E.g., {qsubxopts=>"-V"}  Options are overwritten by appending them to the within-script options. Therefore this is not the best way to choose a different queue but it is a way to change a job name or the number of processors.
       noqsub=>1 Force performing a system call instead of using qsub
       queue=>all.q    Choose the queue to use for a new job.  Default: all.q
@@ -119,7 +119,7 @@ Calls waitOnJobs or joinAllThreads internally. Does not take any parameters.
 Joins all threads.  This is if you have ithreads and if the scheduler is not set.
 For example, if you specify noqsub or if qsub executable is not found.
 
-- `waitOnJobs($jobList,\[$mustFinish\])`
+- `waitOnJobs($jobList,[$mustFinish])`
 
 Waits on all given jobs to finish. The job list are jobs as given by pleaseExecute().
 If $mustFinish evaluates to true, then the program will pause until
