@@ -16,7 +16,7 @@ A module for submitting jobs to an SGE queue.
     # or you can specify which jobs to wait for
     $sge->waitOnJobs([$job,$job2],1); # 1 means wait for all jobs to finish; 0 to wait for any free node
     # or in one step
-    $sge->pleaseExecute\_andWait("sleep 60");
+    $sge->pleaseExecute_andWait("sleep 60");
 
 A quick test for this module is the following one-liner
 
@@ -24,7 +24,7 @@ A quick test for this module is the following one-liner
 
 Another quick test is to use the test() method, if you want to see standardized text output (see test() below)
 
-    perl -MSchedule::SGELK -e '$sge=Schedule::SGELK->new(-numnodes=>2,-numcpus=>8); $sge->test(\\%tmpSettings);'
+    perl -MSchedule::SGELK -e '$sge=Schedule::SGELK->new(-numnodes=>2,-numcpus=>8); $sge->test(\%tmpSettings);'
 
 # DESCRIPTION
 
@@ -60,7 +60,7 @@ Examples:
         {numnodes=>100,numcpus=>1,maxslots=>50} # for many small jobs
         {numnodes=>5,numcpus=>8,maxslots=>40} # for a few larger jobs. NOTE: maxslots should be >= numnodes * maxslots
 
-- `sub error($msg,$exit\_code) or error()`
+- `sub error($msg,$exit_code) or error()`
 
 Get or set the error. Can set the error code too, if provided.
 
@@ -74,7 +74,7 @@ and only the value of the specified setting will be returned.
 
 This is the main method. It will submit a command to the cluster.
 
-      $sge->set("jobname","a\_nu\_start");
+      $sge->set("jobname","a_nu_start");
       $sge->pleaseExecute("someCommand with parameters");
 
 If you are already occupying more than numnodes, then it will pause before 
@@ -138,5 +138,5 @@ ten jobs that print debugging information.
 
 You can give an optional hash argument to send other settings as described in new().
 
-    perl -MSchedule::SGELK -e '$sge=Schedule::SGELK->new(-numnodes=>2,-numcpus=>8); $sge->test(\\%tmpSettings);'
+    perl -MSchedule::SGELK -e '$sge=Schedule::SGELK->new(-numnodes=>2,-numcpus=>8); $sge->test(\%tmpSettings);'
 
