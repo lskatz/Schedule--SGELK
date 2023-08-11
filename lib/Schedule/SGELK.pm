@@ -149,7 +149,7 @@ sub new{
   }
 
   # See if SGE is present
-  if(-e $ENV{SGE_ROOT}){
+  if($ENV{SGE_ROOT} && -e $ENV{SGE_ROOT}){
     $self->set("scheduler","SGE");
   } else{
     logmsg "Env variable \$SGE_ROOT is not set. I will not use SGE";
