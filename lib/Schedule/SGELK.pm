@@ -50,6 +50,9 @@ use File::Spec;
 use File::Slurp qw/read_file write_file/;
 use File::Temp qw/tempdir/;
 use String::Escape qw/escape/;
+use version 0.77;
+
+our $VERSION = version->declare("v1.5");
 
 my $has_threads=eval{
   return 0; # this isn't working yet
@@ -269,7 +272,7 @@ sub pleaseExecute{
   my($submitted,$running,$finished,$died,$output)=("$prefix.submitted", "$prefix.running", "$prefix.finished","$prefix.died","$prefix.log");
    
   my $perl=`which perl`; chomp($perl);
-  open(SCRIPT,">",$script) or die "Could not write to temporary script: $!";
+  open(SCRIPT,">",$script) or die "Could not write to temporary script $script: $!";
   print SCRIPT "#! $perl\n\n";
   #   It has SGE params in it.
   print SCRIPT "#\$ -N $settings{jobname}\n";
